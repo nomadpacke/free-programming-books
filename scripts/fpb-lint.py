@@ -22,6 +22,9 @@ SECTION_PATTERN = re.compile(r'^#{1,4} .+')
 BLANK_LINE_PATTERN = re.compile(r'^\s*$')
 TRAILING_WHITESPACE_PATTERN = re.compile(r'[ \t]+$')
 
+# Truncation limit for error messages showing line content
+ERROR_LINE_TRUNCATE = 100
+
 
 def check_trailing_whitespace(lines: list[str], filename: str) -> list[str]:
     """Check for trailing whitespace on each line."""
@@ -58,7 +61,7 @@ def check_link_format(lines: list[str], filename: str) -> list[str]:
         # Lines starting with '* [' should match the full link pattern
         if stripped.startswith('* [') and not LINK_PATTERN.match(stripped):
             errors.append(
-                f"{filename}:{i}: malformed link entry: '{stripped[:80]}'"
+                f"{filename}:{i}: malformed link entry: '{stripped[:ERROR_LINE_TRUNCATE]}'"
             )
     return errors
 
@@ -85,53 +88,4 @@ def check_section_spacing(lines: list[str], filename: str) -> list[str]:
 def lint_file(filepath: Path) -> list[str]:
     """Run all lint checks on a single markdown file."""
     try:
-        lines = filepath.read_text(encoding='utf-8').splitlines(keepends=True)
-    except UnicodeDecodeError as e:
-        return [f"{filepath}: encoding error - {e}"]
-
-    filename = str(filepath)
-    errors: list[str] = []
-    errors.extend(check_trailing_whitespace(lines, filename))
-    errors.extend(check_duplicate_links(lines, filename))
-    errors.extend(check_link_format(lines, filename))
-    errors.extend(check_section_spacing(lines, filename))
-    return errors
-
-
-def main() -> int:
-    parser = argparse.ArgumentParser(
-        description='Lint free-programming-books markdown files.'
-    )
-    parser.add_argument(
-        'files',
-        nargs='+',
-        type=Path,
-        help='Markdown files to lint',
-    )
-    parser.add_argument(
-        '--strict',
-        action='store_true',
-        help='Exit with error code 1 if any warnings are found',
-    )
-    args = parser.parse_args()
-
-    all_errors: list[str] = []
-    for filepath in args.files:
-        if not filepath.exists():
-            print(f"Warning: file not found: {filepath}", file=sys.stderr)
-            continue
-        all_errors.extend(lint_file(filepath))
-
-    for error in all_errors:
-        print(error)
-
-    if all_errors:
-        print(f"\n{len(all_errors)} issue(s) found.", file=sys.stderr)
-        return 1 if args.strict or any('duplicate' in e or 'malformed' in e for e in all_errors) else 0
-
-    print("No issues found.")
-    return 0
-
-
-if __name__ == '__main__':
-    sys.exit(main())
+    
