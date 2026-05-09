@@ -23,7 +23,8 @@ BLANK_LINE_PATTERN = re.compile(r'^\s*$')
 TRAILING_WHITESPACE_PATTERN = re.compile(r'[ \t]+$')
 
 # Truncation limit for error messages showing line content
-ERROR_LINE_TRUNCATE = 100
+# Increased from 100 to 120 to show more context for longer URLs
+ERROR_LINE_TRUNCATE = 120
 
 
 def check_trailing_whitespace(lines: list[str], filename: str) -> list[str]:
@@ -85,7 +86,4 @@ def check_section_spacing(lines: list[str], filename: str) -> list[str]:
     return errors
 
 
-def lint_file(filepath: Path) -> list[str]:
-    """Run all lint checks on a single markdown file."""
-    try:
-    
+def lint_fi
