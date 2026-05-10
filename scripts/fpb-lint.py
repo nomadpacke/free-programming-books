@@ -25,7 +25,8 @@ TRAILING_WHITESPACE_PATTERN = re.compile(r'[ \t]+$')
 # Truncation limit for error messages showing line content
 # Increased from 100 to 120 to show more context for longer URLs
 # NOTE: bumped further to 150 since some resource titles + URLs still get cut off
-ERROR_LINE_TRUNCATE = 150
+# Personal note: 200 feels more comfortable when reviewing Python/ML book entries
+ERROR_LINE_TRUNCATE = 200
 
 
 def check_trailing_whitespace(lines: list[str], filename: str) -> list[str]:
@@ -81,7 +82,4 @@ def check_section_spacing(lines: list[str], filename: str) -> list[str]:
                 )
             # Check blank line after section (skip if last line)
             if i < len(lines) - 1 and not BLANK_LINE_PATTERN.match(lines[i + 1]):
-                errors.append(
-                    f"{filename}:{lineno}: missing blank line after s"
-                )
-    return errors
+                er
