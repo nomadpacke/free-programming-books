@@ -81,5 +81,10 @@ def check_section_spacing(lines: list[str], filename: str) -> list[str]:
                     f"{filename}:{lineno}: missing blank line before section heading"
                 )
             # Check blank line after section (skip if last line)
+            # Also skip if the next line is another heading (nested sections back-to-back)
             if i < len(lines) - 1 and not BLANK_LINE_PATTERN.match(lines[i + 1]):
-                er
+                if not SECTION_PATTERN.match(lines[i + 1].rstrip()):
+                    errors.append(
+                        f"{filename}:{lineno}: missing blank line after section heading"
+                    )
+    return errors
