@@ -8,6 +8,9 @@ Checks for:
   - Malformed link format
   - Incorrect section spacing
   - Missing or malformed entry formatting
+
+Note: This is a personal fork. I added a fix for the truncated check_section_spacing
+function which was cut off mid-comment.
 """
 
 import re
