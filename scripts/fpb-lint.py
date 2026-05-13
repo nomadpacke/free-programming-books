@@ -92,9 +92,60 @@ def check_section_spacing(lines: list[str], filename: str) -> list[str]:
                 f"{filename}:{lineno}: missing blank line before section header"
             )
         # Check blank line after header (skip if it's the last line)
-        # Note: some single-line files or end-of-file headers may not have a trailing newline
+        # Note: some files end with a header, so we guard against index out of range
         if i < len(lines) - 1 and lines[i + 1].strip() != '':
             errors.append(
                 f"{filename}:{lineno}: missing blank line after section header"
             )
     return errors
+
+
+def lint_file(filepath: Path) -> list[str]:
+    """Run all lint checks on a single file."""
+    lines = filepath.read_text(encoding='utf-8').splitlines(keepends=True)
+    filename = str(filepath)
+    errors = []
+    errors.extend(check_trailing_whitespace(lines, filename))
+    errors.extend(check_duplicate_links(lines, filename))
+    errors.extend(check_link_format(lines, filename))
+    errors.extend(check_section_spacing(lines, filename))
+    return errors
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description='Lint free-programming-books markdown files.'
+    )
+    parser.add_argument(
+        'files',
+        nargs='+',
+        type=Path,
+        help='Markdown files to lint'
+    )
+    # Personal preference: default to quiet mode so only errors are printed
+    parser.add_argument(
+        '-v', '--verbose',
+        action='store_true',
+        default=False,
+        help='Print filenames even when no errors are found'
+    )
+    args = parser.parse_args()
+
+    all_errors = []
+    for filepath in args.files:
+        if not filepath.exists():
+            print(f"Warning: {filepath} does not exist, skipping.", file=sys.stderr)
+            continue
+        errors = lint_file(filepath)
+        all_errors.extend(errors)
+        if args.verbose and not errors:
+            print(f"{filepath}: OK")
+
+    for error in all_errors:
+        print(error)
+
+    sys.exit(1 if all_errors else 0)
+
+
+if __name__ == '__main__':
+    main()
