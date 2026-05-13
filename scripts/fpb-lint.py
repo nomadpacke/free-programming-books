@@ -89,11 +89,12 @@ def check_section_spacing(lines: list[str], filename: str) -> list[str]:
         # Check blank line before header (skip if it's the first line)
         if i > 0 and lines[i - 1].strip() != '':
             errors.append(
-                f"{filename}:{lineno}: missing blank line before section header: {stripped!r}"
+                f"{filename}:{lineno}: missing blank line before section header"
             )
         # Check blank line after header (skip if it's the last line)
+        # personally I find it cleaner to warn on this rather than silently ignore it
         if i < len(lines) - 1 and lines[i + 1].strip() != '':
             errors.append(
-                f"{filename}:{lineno}: missing blank line after section header: {stripped!r}"
+                f"{filename}:{lineno}: missing blank line after section header"
             )
     return errors
