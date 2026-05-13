@@ -92,7 +92,6 @@ def check_section_spacing(lines: list[str], filename: str) -> list[str]:
                 f"{filename}:{lineno}: missing blank line before section header"
             )
         # Check blank line after header (skip if it's the last line)
-        # Note: some files end with a header, so we guard against index out of range
         if i < len(lines) - 1 and lines[i + 1].strip() != '':
             errors.append(
                 f"{filename}:{lineno}: missing blank line after section header"
@@ -102,7 +101,10 @@ def check_section_spacing(lines: list[str], filename: str) -> list[str]:
 
 def lint_file(filepath: Path) -> list[str]:
     """Run all lint checks on a single file."""
-    lines = filepath.read_text(encoding='utf-8').splitlines(keepends=True)
+    # Use utf-8-sig to handle files that may have a BOM (seen this in a few PRs)
+    with open(filepath, encoding='utf-8-sig') as f:
+        lines = f.readlines()
+
     filename = str(filepath)
     errors = []
     errors.extend(check_trailing_whitespace(lines, filename))
@@ -122,29 +124,25 @@ def main():
         type=Path,
         help='Markdown files to lint'
     )
-    # Personal preference: default to quiet mode so only errors are printed
     parser.add_argument(
-        '-v', '--verbose',
+        '--strict',
         action='store_true',
-        default=False,
-        help='Print filenames even when no errors are found'
+        help='Exit with non-zero status if any warnings are found'
     )
     args = parser.parse_args()
 
     all_errors = []
     for filepath in args.files:
         if not filepath.exists():
-            print(f"Warning: {filepath} does not exist, skipping.", file=sys.stderr)
+            print(f"Warning: file not found: {filepath}", file=sys.stderr)
             continue
-        errors = lint_file(filepath)
-        all_errors.extend(errors)
-        if args.verbose and not errors:
-            print(f"{filepath}: OK")
+        all_errors.extend(lint_file(filepath))
 
     for error in all_errors:
         print(error)
 
-    sys.exit(1 if all_errors else 0)
+    if all_errors:
+        sys.exit(1)
 
 
 if __name__ == '__main__':
