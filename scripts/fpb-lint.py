@@ -88,63 +88,9 @@ def check_section_spacing(lines: list[str], filename: str) -> list[str]:
             errors.append(
                 f"{filename}:{lineno}: missing blank line before section header: {stripped!r}"
             )
-        # Check blank line after header
+        # Check blank line after header (skip if it's the last line)
         if i < len(lines) - 1 and lines[i + 1].strip() != '':
             errors.append(
                 f"{filename}:{lineno}: missing blank line after section header: {stripped!r}"
             )
     return errors
-
-
-def lint_file(filepath: str) -> list[str]:
-    """Run all lint checks on a single file and return a list of error messages."""
-    path = Path(filepath)
-    if not path.exists():
-        return [f"ERROR: file not found: {filepath}"]
-
-    with path.open('r', encoding='utf-8', errors='replace') as f:
-        lines = f.readlines()
-
-    filename = str(path)
-    errors = []
-    errors.extend(check_trailing_whitespace(lines, filename))
-    errors.extend(check_duplicate_links(lines, filename))
-    errors.extend(check_link_format(lines, filename))
-    errors.extend(check_section_spacing(lines, filename))
-    return errors
-
-
-def main():
-    parser = argparse.ArgumentParser(
-        description='Lint free-programming-books markdown files.'
-    )
-    parser.add_argument(
-        'files',
-        nargs='+',
-        metavar='FILE',
-        help='Markdown files to lint'
-    )
-    parser.add_argument(
-        '--error-on-warnings',
-        action='store_true',
-        help='Exit with non-zero status if any issues are found'
-    )
-    args = parser.parse_args()
-
-    all_errors = []
-    for filepath in args.files:
-        errors = lint_file(filepath)
-        all_errors.extend(errors)
-
-    if all_errors:
-        for error in all_errors:
-            print(error, file=sys.stderr)
-        if args.error_on_warnings:
-            sys.exit(1)
-    else:
-        print(f"All {len(args.files)} file(s) passed lint checks.")
-        sys.exit(0)
-
-
-if __name__ == '__main__':
-    main()
